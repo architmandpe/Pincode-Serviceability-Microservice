@@ -1,0 +1,50 @@
+services:
+  rustapp:
+    container_name: rustapp
+    image: aniketp02/rustapp:latest
+    build:
+      context: ./backend
+      dockerfile: rust.dockerfile
+      args:
+        DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+        REDIS_URL: "redis://redis:6379"
+    ports:
+      - 8000:8000
+    restart: on-failure
+    depends_on:
+      - db
+      - redis
+    links:
+      - db
+      - redis
+    networks:
+      - myappnetwork
+    expose:
+      - 8000
+      
+  db:
+    container_name: db
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - myappnetwork
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - myappnetwork
+
+volumes:
+  pgdata: {}
+
+networks:
+  myappnetwork:
